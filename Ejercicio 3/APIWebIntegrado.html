@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta integrada</title>
+</head>
+<body>
+    <h1>Consulta Meteorológica por información Geográfica y Listas de reproduccion populares</h1>
+    <label for="ciudad">Lugar:</label>
+    <input type="text" id="ciudadInput" placeholder="Escribe el nombre de la ciudad">
+    <button onclick="obtenerInformacion()">Consultar</button>
+    <div><br>
+        <div id="resultadoGeografico"></div>
+        <div id="resultadoMetereologico"></div>
+        <div id="resultadoNoListas"></div>
+        <div id="resultadoListas"></div>
+        <div id="resultadoError"></div>
+    </div>
+    
+    <script>
+        function obtenerInformacion(){
+            document.getElementById("resultadoGeografico").innerHTML = "";
+            document.getElementById("resultadoMetereologico").innerHTML = "";
+            document.getElementById("resultadoNoListas").innerHTML = "";
+            document.getElementById("resultadoListas").innerHTML = ""; 
+            document.getElementById("resultadoError").innerHTML = ""; 
+            const lugar = document.getElementById("ciudadInput").value;
+            const url = `http://localhost:8888/integrado/${lugar}`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.lugar == "No disponible"){
+                        info_lugar = "No se obtuvieron datos para " + lugar + ".";
+                    } else {
+                        info_lugar = "Lugar: " +data.lugar.name+ "<br>País: " +data.lugar.pais+ " [" +data.lugar.codPais+"]";
+                        if (data.clima == "No disponible"){
+                            info_clima = "No se obtuvieron datos metereológicos.";
+                        } else {
+                            info_clima = "Clima: " +data.clima.clima+ "<br>Temperatura: " +data.clima.temperatura.toFixed(2)+ " °C<br>"; 
+                        }
+                        if (data.listas_reproduccion == "No disponible"){
+                            info_listas = "No se obtuvieron listas de reproducción.";
+                        } else {
+                            info_listas = "Listas de reproducción populares del país: " + data.listas_reproduccion.total;
+                            for (var i = 0; i < data.listas_reproduccion.total; i++){
+                                document.getElementById("resultadoListas").innerHTML += "\t" +(i+1)+ ") " +data.listas_reproduccion.listas[i].nombre+ " - " +data.listas_reproduccion.listas[i].canciones+ " canciones - URL: " +data.listas_reproduccion.listas[i].URL+ "<br>";
+                            }
+                        }
+                        document.getElementById("resultadoGeografico").innerHTML = info_lugar;
+                        document.getElementById("resultadoMetereologico").innerHTML = info_clima;
+                        document.getElementById("resultadoNoListas").innerHTML = info_listas;
+                    }
+                })
+                .catch(error => {
+                    document.getElementById("resultadoError").innerHTML = "Error: " + error.message;
+                });
+        }
+    </script>
+</body>
+</html>
